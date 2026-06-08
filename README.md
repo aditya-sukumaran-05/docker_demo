@@ -1,18 +1,25 @@
-Docker Task Manager
+# Docker Task Manager
 
-Features:
-- Task CRUD
-- Priority Management
-- Due Dates
-- Overdue Detection
-- Dashboard Analytics
+A task management application built using:
 
-Tech Stack:
 - Flask
 - MySQL
 - Nginx
 - Docker Compose
 - Bootstrap
 
-Run:
+## Features
+
+- Add Tasks
+- Edit Tasks
+- Delete Tasks
+- Task Completion
+- Priority Levels
+- Due Dates
+- Overdue Detection
+- Dashboard Analytics
+
+## Run
+
+```bash
 docker compose up --build
