@@ -23,3 +23,12 @@ A task management application built using:
 
 ```bash
 docker compose up --build
+
+
+Access
+
+Application:
+http://localhost
+
+Adminer:
+http://localhost:8080
