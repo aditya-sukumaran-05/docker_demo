@@ -33,7 +33,11 @@ def init_db():
                 task VARCHAR(255),
                 completed BOOLEAN DEFAULT FALSE,
                 priority VARCHAR(10) DEFAULT 'Medium',
-                due_date DATE
+                category VARCHAR(50) DEFAULT 'General',
+                notes TEXT,
+                due_date DATE,
+                status VARCHAR(20) DEFAULT 'To Do',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """)
 
@@ -56,56 +60,149 @@ init_db()
 @app.route("/")
 def home():
 
+    search = request.args.get("search", "")
+    priority_filter = request.args.get("priority", "All")
+    category_filter = request.args.get("category", "All")
+    sort_by = request.args.get("sort", "priority")
+
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT id,
-               task,
-               completed,
-               priority,
-               due_date
+    query = """
+        SELECT
+            id,
+            task,
+            completed,
+            priority,
+            category,
+            notes,
+            due_date,
+            status,
+            created_at
         FROM tasks
+        WHERE 1=1
+    """
+
+    params = []
+
+    if search:
+        query += " AND task LIKE %s "
+        params.append(f"%{search}%")
+
+    if priority_filter != "All":
+        query += " AND priority=%s "
+        params.append(priority_filter)
+
+    if category_filter != "All":
+        query += " AND category=%s "
+        params.append(category_filter)
+
+    if sort_by == "priority":
+
+        query += """
         ORDER BY
-            completed ASC,
 
-            CASE
-                WHEN completed = FALSE
-                AND due_date IS NOT NULL
-                AND due_date < CURDATE()
-                THEN 0
-                ELSE 1
-            END,
+        CASE status
+            WHEN 'To Do' THEN 1
+            WHEN 'In Progress' THEN 2
+            WHEN 'Blocked' THEN 3
+            WHEN 'Completed' THEN 4
+        END,
 
-            CASE priority
-                WHEN 'High' THEN 1
-                WHEN 'Medium' THEN 2
-                WHEN 'Low' THEN 3
-            END,
+        CASE priority
+            WHEN 'High' THEN 1
+            WHEN 'Medium' THEN 2
+            WHEN 'Low' THEN 3
+        END,
 
-            due_date ASC
-    """)
+        due_date ASC
+        """
+
+    elif sort_by == "due_date":
+
+        query += """
+        ORDER BY
+        due_date ASC
+        """
+
+    elif sort_by == "category":
+
+        query += """
+        ORDER BY
+        category ASC,
+        due_date ASC
+        """
+
+    elif sort_by == "newest":
+
+        query += """
+        ORDER BY
+        created_at DESC
+        """
+
+    elif sort_by == "oldest":
+
+        query += """
+        ORDER BY
+        created_at ASC
+        """
+
+    elif sort_by == "status":
+
+        query += """
+        ORDER BY
+
+        CASE status
+            WHEN 'To Do' THEN 1
+            WHEN 'In Progress' THEN 2
+            WHEN 'Blocked' THEN 3
+            WHEN 'Completed' THEN 4
+        END
+        """
+
+    cur.execute(query, params)
 
     tasks = cur.fetchall()
+
+    # Dashboard Stats
 
     cur.execute("SELECT COUNT(*) FROM tasks")
     total_tasks = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT COUNT(*)
-        FROM tasks
-        WHERE completed = TRUE
+    SELECT COUNT(*)
+    FROM tasks
+    WHERE status='To Do'
+    """)
+    todo_tasks = cur.fetchone()[0]
+
+    cur.execute("""
+    SELECT COUNT(*)
+    FROM tasks
+    WHERE status='In Progress'
+    """)
+    progress_tasks = cur.fetchone()[0]
+
+    cur.execute("""
+    SELECT COUNT(*)
+    FROM tasks
+    WHERE status='Blocked'
+    """)
+    blocked_tasks = cur.fetchone()[0]
+
+    cur.execute("""
+    SELECT COUNT(*)
+    FROM tasks
+    WHERE status='Completed'
     """)
     completed_tasks = cur.fetchone()[0]
 
-    pending_tasks = total_tasks - completed_tasks
-
     cur.execute("""
-        SELECT COUNT(*)
-        FROM tasks
-        WHERE completed = FALSE
-        AND due_date IS NOT NULL
-        AND due_date < CURDATE()
+    SELECT COUNT(*)
+    FROM tasks
+    WHERE status!='Completed'
+    AND due_date IS NOT NULL
+    AND due_date < CURDATE()
     """)
     overdue_tasks = cur.fetchone()[0]
 
@@ -116,10 +213,16 @@ def home():
         "index.html",
         tasks=tasks,
         total_tasks=total_tasks,
+        todo_tasks=todo_tasks,
+        progress_tasks=progress_tasks,
+        blocked_tasks=blocked_tasks,
         completed_tasks=completed_tasks,
-        pending_tasks=pending_tasks,
         overdue_tasks=overdue_tasks,
-        today=date.today()
+        today=date.today(),
+        search=search,
+        priority_filter=priority_filter,
+        category_filter=category_filter,
+        sort_by=sort_by
     )
 
 
@@ -128,15 +231,30 @@ def add():
 
     task = request.form["task"]
     priority = request.form["priority"]
+    category = request.form["category"]
+    notes = request.form["notes"]
     due_date = request.form["due_date"] or None
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        INSERT INTO tasks(task, priority, due_date)
-        VALUES(%s, %s, %s)
-    """, (task, priority, due_date))
+    INSERT INTO tasks(
+        task,
+        priority,
+        category,
+        notes,
+        due_date,
+        status
+    )
+    VALUES(%s,%s,%s,%s,%s,'To Do')
+    """, (
+        task,
+        priority,
+        category,
+        notes,
+        due_date
+    ))
 
     conn.commit()
 
@@ -146,17 +264,33 @@ def add():
     return redirect("/")
 
 
-@app.route("/toggle/<int:id>")
-def toggle(id):
+@app.route("/status/<int:id>/<new_status>")
+def update_status(id, new_status):
+
+    allowed = [
+        "To Do",
+        "In Progress",
+        "Blocked",
+        "Completed"
+    ]
+
+    if new_status not in allowed:
+        return redirect("/")
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        UPDATE tasks
-        SET completed = NOT completed
-        WHERE id=%s
-    """, (id,))
+    UPDATE tasks
+    SET
+        status=%s,
+        completed=%s
+    WHERE id=%s
+    """, (
+        new_status,
+        new_status == "Completed",
+        id
+    ))
 
     conn.commit()
 
@@ -172,10 +306,10 @@ def delete(id):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        DELETE FROM tasks
-        WHERE id=%s
-    """, (id,))
+    cur.execute(
+        "DELETE FROM tasks WHERE id=%s",
+        (id,)
+    )
 
     conn.commit()
 
@@ -195,18 +329,30 @@ def edit(id):
 
         task = request.form["task"]
         priority = request.form["priority"]
+        category = request.form["category"]
+        notes = request.form["notes"]
         due_date = request.form["due_date"] or None
+        status = request.form["status"]
 
         cur.execute("""
-            UPDATE tasks
-            SET task=%s,
-                priority=%s,
-                due_date=%s
-            WHERE id=%s
+        UPDATE tasks
+        SET
+            task=%s,
+            priority=%s,
+            category=%s,
+            notes=%s,
+            due_date=%s,
+            status=%s,
+            completed=%s
+        WHERE id=%s
         """, (
             task,
             priority,
+            category,
+            notes,
             due_date,
+            status,
+            status == "Completed",
             id
         ))
 
@@ -218,13 +364,18 @@ def edit(id):
         return redirect("/")
 
     cur.execute("""
-        SELECT id,
-               task,
-               completed,
-               priority,
-               due_date
-        FROM tasks
-        WHERE id=%s
+    SELECT
+        id,
+        task,
+        completed,
+        priority,
+        category,
+        notes,
+        due_date,
+        status,
+        created_at
+    FROM tasks
+    WHERE id=%s
     """, (id,))
 
     task = cur.fetchone()
@@ -239,4 +390,7 @@ def edit(id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(
+        host="0.0.0.0",
+        port=5000
+    )
