@@ -1,0 +1,30 @@
+name: Docker Build Test
+
+on:
+
+  push:
+
+    branches:
+      - main
+      - feature/*
+
+  pull_request:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build -t docker-task-manager .
+
+      - name: Verify Image Exists
+        run: |
+          docker images
