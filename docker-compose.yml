@@ -10,6 +10,12 @@ services:
 
     depends_on:
       - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 
   db:
     image: mysql:8.0
