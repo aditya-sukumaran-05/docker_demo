@@ -56,16 +56,33 @@ init_db()
 @app.route("/")
 def home():
 
+    search = request.args.get("search", "")
+    priority_filter = request.args.get("priority", "All")
+
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    query = """
         SELECT id,
                task,
                completed,
                priority,
                due_date
         FROM tasks
+        WHERE 1=1
+    """
+
+    params = []
+
+    if search:
+        query += " AND task LIKE %s "
+        params.append(f"%{search}%")
+
+    if priority_filter != "All":
+        query += " AND priority = %s "
+        params.append(priority_filter)
+
+    query += """
         ORDER BY
             completed ASC,
 
@@ -84,8 +101,9 @@ def home():
             END,
 
             due_date ASC
-    """)
+    """
 
+    cur.execute(query, params)
     tasks = cur.fetchall()
 
     cur.execute("SELECT COUNT(*) FROM tasks")
@@ -119,7 +137,9 @@ def home():
         completed_tasks=completed_tasks,
         pending_tasks=pending_tasks,
         overdue_tasks=overdue_tasks,
-        today=date.today()
+        today=date.today(),
+        search=search,
+        priority_filter=priority_filter
     )
 
 

@@ -19,8 +19,6 @@
 
 <div class="container mt-5">
 
-    <!-- Header -->
-
     <div class="text-center mb-4">
 
         <h1>🚀 Docker Task Manager</h1>
@@ -36,106 +34,129 @@
     <div class="row mb-4">
 
         <div class="col-md-3 mb-3">
-
             <div class="card shadow-sm text-center">
-
                 <div class="card-body">
-
                     <h6>Total Tasks</h6>
-
-                    <h2>
-                        {{ total_tasks }}
-                    </h2>
-
+                    <h2>{{ total_tasks }}</h2>
                 </div>
-
             </div>
-
         </div>
 
         <div class="col-md-3 mb-3">
-
             <div class="card shadow-sm text-center">
-
                 <div class="card-body">
-
                     <h6>Completed</h6>
-
                     <h2 class="text-success">
                         {{ completed_tasks }}
                     </h2>
-
                 </div>
-
             </div>
-
         </div>
 
         <div class="col-md-3 mb-3">
-
             <div class="card shadow-sm text-center">
-
                 <div class="card-body">
-
                     <h6>Pending</h6>
-
                     <h2 class="text-warning">
                         {{ pending_tasks }}
                     </h2>
-
                 </div>
-
             </div>
-
         </div>
 
         <div class="col-md-3 mb-3">
-
             <div class="card shadow-sm text-center border-danger">
-
                 <div class="card-body">
-
                     <h6>Overdue</h6>
-
                     <h2 class="text-danger">
                         {{ overdue_tasks }}
                     </h2>
-
                 </div>
-
             </div>
-
         </div>
 
     </div>
 
-    <!-- Main Card -->
-
     <div class="card shadow">
 
         <div class="card-header">
-
             <h4 class="mb-0">
                 Task Management
             </h4>
-
         </div>
 
         <div class="card-body">
 
-            <!-- Search Bar (Future Feature) -->
+            <!-- Search + Filter -->
 
-            <div class="mb-4">
+            <form method="get" class="row g-2 mb-4">
 
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="🔍 Search functionality coming soon..."
-                    disabled>
+                <div class="col-md-6">
 
-            </div>
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Search tasks..."
+                        value="{{ search }}">
 
-            <!-- Add Task Form -->
+                </div>
+
+                <div class="col-md-3">
+
+                    <select
+                        name="priority"
+                        class="form-select">
+
+                        <option value="All"
+                        {% if priority_filter == 'All' %}selected{% endif %}>
+                            All Priorities
+                        </option>
+
+                        <option value="High"
+                        {% if priority_filter == 'High' %}selected{% endif %}>
+                            High
+                        </option>
+
+                        <option value="Medium"
+                        {% if priority_filter == 'Medium' %}selected{% endif %}>
+                            Medium
+                        </option>
+
+                        <option value="Low"
+                        {% if priority_filter == 'Low' %}selected{% endif %}>
+                            Low
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <button
+                        class="btn btn-outline-primary w-100">
+
+                        Apply
+
+                    </button>
+
+                </div>
+
+                <div class="col-md-1">
+
+                    <a href="/"
+                       class="btn btn-outline-secondary w-100">
+
+                        ✕
+
+                    </a>
+
+                </div>
+
+            </form>
+
+            <!-- Add Task -->
 
             <form action="/add"
                   method="post"
@@ -197,6 +218,16 @@
 
             </form>
 
+            {% if not tasks %}
+
+            <div class="alert alert-warning">
+
+                No tasks found.
+
+            </div>
+
+            {% endif %}
+
             <!-- Active Tasks -->
 
             <h4 class="mb-3">
@@ -213,53 +244,28 @@
 
                     <div>
 
-                        <!-- Priority -->
-
                         {% if task[3] == 'High' %}
-
-                            <span class="badge bg-danger me-2">
-                                High
-                            </span>
-
+                            <span class="badge bg-danger me-2">High</span>
                         {% elif task[3] == 'Medium' %}
-
-                            <span class="badge bg-warning text-dark me-2">
-                                Medium
-                            </span>
-
+                            <span class="badge bg-warning text-dark me-2">Medium</span>
                         {% else %}
-
-                            <span class="badge bg-success me-2">
-                                Low
-                            </span>
-
+                            <span class="badge bg-success me-2">Low</span>
                         {% endif %}
 
-                        <!-- Task Name -->
-
-                        <strong>
-                            {{ task[1] }}
-                        </strong>
-
-                        <!-- Due Date -->
+                        <strong>{{ task[1] }}</strong>
 
                         {% if task[4] %}
 
                             <br>
 
                             <small class="text-muted">
-
-                                📅 Due:
-                                {{ task[4] }}
-
+                                📅 Due: {{ task[4] }}
                             </small>
 
                             {% if task[4] < today %}
-
                                 <span class="badge bg-danger ms-2">
                                     OVERDUE
                                 </span>
-
                             {% endif %}
 
                         {% endif %}
@@ -270,23 +276,17 @@
 
                         <a href="/toggle/{{ task[0] }}"
                            class="btn btn-sm btn-success">
-
                             Complete
-
                         </a>
 
                         <a href="/edit/{{ task[0] }}"
                            class="btn btn-sm btn-warning">
-
                             Edit
-
                         </a>
 
                         <a href="/delete/{{ task[0] }}"
                            class="btn btn-sm btn-danger">
-
                             Delete
-
                         </a>
 
                     </div>
@@ -315,8 +315,7 @@
 
                     <div>
 
-                        <span
-                            class="text-decoration-line-through text-success fw-bold">
+                        <span class="text-decoration-line-through text-success fw-bold">
 
                             {{ task[1] }}
 
@@ -328,16 +327,12 @@
 
                         <a href="/toggle/{{ task[0] }}"
                            class="btn btn-sm btn-secondary">
-
                             Undo
-
                         </a>
 
                         <a href="/delete/{{ task[0] }}"
                            class="btn btn-sm btn-danger">
-
                             Delete
-
                         </a>
 
                     </div>
