@@ -236,11 +236,21 @@ def home():
     except Exception as e:
         print("Database unavailable:", e)
     
-        tasks = []
-        total_tasks = 0
-        completed_tasks = 0
-        pending_tasks = 0
-        overdue_tasks = 0
+        return render_template(
+            "index.html",
+            tasks=[],
+            total_tasks=0,
+            todo_tasks=0,
+            progress_tasks=0,
+            blocked_tasks=0,
+            completed_tasks=0,
+            overdue_tasks=0,
+            today=date.today(),
+            search=search,
+            priority_filter=priority_filter,
+            category_filter=category_filter,
+            sort_by=sort_by
+        )
 
 @app.route("/add", methods=["POST"])
 def add():
