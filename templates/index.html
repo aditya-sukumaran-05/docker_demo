@@ -31,65 +31,129 @@
 
     <!-- Dashboard -->
 
-    <div class="row mb-4">
+    <!-- Dashboard -->
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>Total</h6>
-                    <h3>{{ total_tasks }}</h3>
-                </div>
+<div class="row mb-4">
+
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Total</h6>
+                <h3>{{ total_tasks }}</h3>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>To Do</h6>
-                    <h3>{{ todo_tasks }}</h3>
-                </div>
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>To Do</h6>
+                <h3>{{ todo_tasks }}</h3>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>In Progress</h6>
-                    <h3>{{ progress_tasks }}</h3>
-                </div>
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Progress</h6>
+                <h3>{{ progress_tasks }}</h3>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>Blocked</h6>
-                    <h3>{{ blocked_tasks }}</h3>
-                </div>
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Blocked</h6>
+                <h3>{{ blocked_tasks }}</h3>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>Completed</h6>
-                    <h3>{{ completed_tasks }}</h3>
-                </div>
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center border-success">
+            <div class="card-body">
+                <h6>Completed</h6>
+                <h3 class="text-success">
+                    {{ completed_tasks }}
+                </h3>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-2 mb-3">
-            <div class="card shadow-sm text-center border-danger">
-                <div class="card-body">
-                    <h6>Overdue</h6>
-                    <h3 class="text-danger">
-                        {{ overdue_tasks }}
-                    </h3>
-                </div>
+    <div class="col-md-2 mb-3">
+        <div class="card shadow-sm text-center border-danger">
+            <div class="card-body">
+                <h6>Overdue</h6>
+                <h3 class="text-danger">
+                    {{ overdue_tasks }}
+                </h3>
             </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Analytics -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header">
+
+        <h5 class="mb-0">
+            📈 Project Analytics
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-6">
+
+                <h6>
+                    Completion Rate
+                </h6>
+
+                <div class="progress"
+                     style="height:30px;">
+
+                    <div
+    class="progress-bar bg-success"
+    role="progressbar"
+    aria-valuenow="{{ completion_percentage }}"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    style="width: {{ completion_percentage }}%"
+>
+    {{ completion_percentage }}%
+</div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="alert alert-warning mb-0">
+
+                    <strong>
+                        High Priority Tasks:
+                    </strong>
+
+                    {{ high_priority_tasks }}
+
+                </div>
+
+            </div>
+
         </div>
 
     </div>
+
+</div>
 
     <div class="card shadow">
 

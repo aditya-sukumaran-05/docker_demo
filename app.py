@@ -85,10 +85,12 @@ def home():
     priority_filter = request.args.get("priority", "All")
     category_filter = request.args.get("category", "All")
     sort_by = request.args.get("sort", "priority")
+
     try:
+
         conn = get_connection()
         cur = conn.cursor()
-    
+
         query = """
             SELECT
                 id,
@@ -103,76 +105,72 @@ def home():
             FROM tasks
             WHERE 1=1
         """
-    
+
         params = []
-    
+
         if search:
             query += " AND task LIKE %s "
             params.append(f"%{search}%")
-    
+
         if priority_filter != "All":
             query += " AND priority=%s "
             params.append(priority_filter)
-    
+
         if category_filter != "All":
             query += " AND category=%s "
             params.append(category_filter)
-    
+
         if sort_by == "priority":
-    
+
             query += """
             ORDER BY
-    
+
             CASE status
                 WHEN 'To Do' THEN 1
                 WHEN 'In Progress' THEN 2
                 WHEN 'Blocked' THEN 3
                 WHEN 'Completed' THEN 4
             END,
-    
+
             CASE priority
                 WHEN 'High' THEN 1
                 WHEN 'Medium' THEN 2
                 WHEN 'Low' THEN 3
             END,
-    
+
             due_date ASC
             """
-    
+
         elif sort_by == "due_date":
-    
+
             query += """
-            ORDER BY
-            due_date ASC
+            ORDER BY due_date ASC
             """
-    
+
         elif sort_by == "category":
-    
+
             query += """
-            ORDER BY
-            category ASC,
-            due_date ASC
+            ORDER BY category ASC,
+                     due_date ASC
             """
-    
+
         elif sort_by == "newest":
-    
+
             query += """
-            ORDER BY
-            created_at DESC
+            ORDER BY created_at DESC
             """
-    
+
         elif sort_by == "oldest":
-    
+
             query += """
-            ORDER BY
-            created_at ASC
+            ORDER BY created_at ASC
             """
-    
+
         elif sort_by == "status":
-    
+
             query += """
             ORDER BY
-    
+
             CASE status
                 WHEN 'To Do' THEN 1
                 WHEN 'In Progress' THEN 2
@@ -180,44 +178,52 @@ def home():
                 WHEN 'Completed' THEN 4
             END
             """
-    
+
         cur.execute(query, params)
-    
         tasks = cur.fetchall()
-    
-        # Dashboard Stats
-    
+
+        # ======================
+        # Dashboard Analytics
+        # ======================
+
         cur.execute("SELECT COUNT(*) FROM tasks")
         total_tasks = cur.fetchone()[0]
-    
+
         cur.execute("""
         SELECT COUNT(*)
         FROM tasks
         WHERE status='To Do'
         """)
         todo_tasks = cur.fetchone()[0]
-    
+
         cur.execute("""
         SELECT COUNT(*)
         FROM tasks
         WHERE status='In Progress'
         """)
         progress_tasks = cur.fetchone()[0]
-    
+
         cur.execute("""
         SELECT COUNT(*)
         FROM tasks
         WHERE status='Blocked'
         """)
         blocked_tasks = cur.fetchone()[0]
-    
+
         cur.execute("""
         SELECT COUNT(*)
         FROM tasks
         WHERE status='Completed'
         """)
         completed_tasks = cur.fetchone()[0]
-    
+
+        cur.execute("""
+        SELECT COUNT(*)
+        FROM tasks
+        WHERE priority='High'
+        """)
+        high_priority_tasks = cur.fetchone()[0]
+
         cur.execute("""
         SELECT COUNT(*)
         FROM tasks
@@ -226,10 +232,17 @@ def home():
         AND due_date < CURDATE()
         """)
         overdue_tasks = cur.fetchone()[0]
-    
+
+        completion_percentage = 0
+
+        if total_tasks > 0:
+            completion_percentage = round(
+                (completed_tasks / total_tasks) * 100
+            )
+
         cur.close()
         conn.close()
-    
+
         return render_template(
             "index.html",
             tasks=tasks,
@@ -239,15 +252,19 @@ def home():
             blocked_tasks=blocked_tasks,
             completed_tasks=completed_tasks,
             overdue_tasks=overdue_tasks,
+            high_priority_tasks=high_priority_tasks,
+            completion_percentage=completion_percentage,
             today=date.today(),
             search=search,
             priority_filter=priority_filter,
             category_filter=category_filter,
             sort_by=sort_by
         )
+
     except Exception as e:
+
         print("Database unavailable:", e)
-    
+
         return render_template(
             "index.html",
             tasks=[],
@@ -257,13 +274,15 @@ def home():
             blocked_tasks=0,
             completed_tasks=0,
             overdue_tasks=0,
+            high_priority_tasks=0,
+            completion_percentage=0,
             today=date.today(),
             search=search,
             priority_filter=priority_filter,
             category_filter=category_filter,
             sort_by=sort_by
         )
-
+    
 @app.route("/add", methods=["POST"])
 def add():
 
