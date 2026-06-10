@@ -10,14 +10,15 @@ host = os.getenv("MYSQL_HOST")
 user = os.getenv("MYSQL_USER")
 password = os.getenv("MYSQL_PASSWORD")
 database = os.getenv("MYSQL_DATABASE")
-
+port = int(os.getenv("MYSQL_PORT", 3306))
 
 def get_connection():
     return mysql.connector.connect(
         host=host,
         user=user,
         password=password,
-        database=database
+        database=database,
+        port=port
     )
 
 
@@ -58,14 +59,25 @@ def init_db():
 @app.route("/ping")
 def ping():
     return "pong"
-#init_db()
+init_db()
 
 @app.route("/health")
 def health():
     return {
         "status": "healthy"
     }
-
+@app.route("/dbtest")
+def dbtest():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        return f"Database Connected: {result}"
+    except Exception as e:
+        return f"Database Error: {str(e)}"
 @app.route("/")
 def home():
 
