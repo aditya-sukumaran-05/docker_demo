@@ -22,37 +22,39 @@ def get_connection():
 
 
 def init_db():
-    while True:
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-
-            cur.execute("""
-            CREATE TABLE IF NOT EXISTS tasks(
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                task VARCHAR(255),
-                completed BOOLEAN DEFAULT FALSE,
-                priority VARCHAR(10) DEFAULT 'Medium',
-                category VARCHAR(50) DEFAULT 'General',
-                notes TEXT,
-                due_date DATE,
-                status VARCHAR(20) DEFAULT 'To Do',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """)
-
-            conn.commit()
-
-            cur.close()
-            conn.close()
-
-            print("Database ready")
-            break
-
-        except Exception as e:
-            print("Waiting for MySQL...", e)
-            time.sleep(5)
-
+    try:
+        while True:
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+    
+                cur.execute("""
+                CREATE TABLE IF NOT EXISTS tasks(
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    task VARCHAR(255),
+                    completed BOOLEAN DEFAULT FALSE,
+                    priority VARCHAR(10) DEFAULT 'Medium',
+                    category VARCHAR(50) DEFAULT 'General',
+                    notes TEXT,
+                    due_date DATE,
+                    status VARCHAR(20) DEFAULT 'To Do',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """)
+    
+                conn.commit()
+    
+                cur.close()
+                conn.close()
+    
+                print("Database ready")
+                break
+    
+            except Exception as e:
+                print("Waiting for MySQL...", e)
+                time.sleep(5)
+    except Exception as e:
+        print(e)
 
 init_db()
 
