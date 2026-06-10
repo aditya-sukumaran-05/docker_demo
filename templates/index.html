@@ -171,11 +171,20 @@
 
     <div class="card shadow">
 
-        <div class="card-header">
-            <h4 class="mb-0">
-                Task Management
-            </h4>
-        </div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+    <h4 class="mb-0">
+        Task Management
+    </h4>
+
+    <a href="/export"
+       class="btn btn-success">
+
+        📥 Export CSV
+
+    </a>
+
+</div>
 
         <div class="card-body">
 
@@ -409,9 +418,9 @@
 
                         <div>
 
-                            <span class="badge bg-primary">
-                                {{ task[4] }}
-                            </span>
+                            <span class="badge bg-{{ task[10] }}">
+    {{ task[4] }}
+</span>
 
                             {% if task[3]=='High' %}
                                 <span class="badge bg-danger">High</span>
@@ -438,11 +447,39 @@
                             </small>
 
                             {% if task[6] %}
-                            <br>
-                            <small class="text-muted">
-                                Due: {{ task[6] }}
-                            </small>
-                            {% endif %}
+<br>
+
+<small class="text-muted">
+    Due: {{ task[6] }}
+</small>
+
+<br>
+
+<small class="fw-bold">
+
+    {% if "Overdue" in task[9] %}
+
+        <span class="text-danger">
+            🚨 {{ task[9] }}
+        </span>
+
+    {% elif "today" in task[9] %}
+
+        <span class="text-warning">
+            ⚠ {{ task[9] }}
+        </span>
+
+    {% else %}
+
+        <span class="text-success">
+            ⏰ {{ task[9] }}
+        </span>
+
+    {% endif %}
+
+</small>
+
+{% endif %}
 
                             {% if task[6] and task[6] < today %}
                             <span class="badge bg-danger ms-2">
@@ -486,9 +523,14 @@
                             </a>
 
                             <a href="/delete/{{ task[0] }}"
-                               class="btn btn-sm btn-danger">
-                                Delete
-                            </a>
+   class="btn btn-sm btn-danger"
+   onclick="return confirm(
+       'Delete this task?'
+   )">
+
+    Delete
+
+</a>
 
                         </div>
 
@@ -539,11 +581,14 @@
                         <div>
 
                             <a href="/delete/{{ task[0] }}"
-                               class="btn btn-sm btn-danger">
+   class="btn btn-sm btn-danger"
+   onclick="return confirm(
+       'Delete this task?'
+   )">
 
-                                Delete
+    Delete
 
-                            </a>
+</a>
 
                         </div>
 

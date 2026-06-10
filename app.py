@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, redirect
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    Response
+)
+from datetime import date
+import csv
+from io import StringIO
 import mysql.connector
 import time
 import os
@@ -180,7 +189,46 @@ def home():
             """
 
         cur.execute(query, params)
-        tasks = cur.fetchall()
+        raw_tasks = cur.fetchall()
+
+        tasks = []
+
+        for task in raw_tasks:
+
+            task = list(task)
+
+            countdown = ""
+
+            if task[6]:
+
+                days_left = (task[6] - date.today()).days
+
+                if days_left > 1:
+                    countdown = f"Due in {days_left} days"
+
+                elif days_left == 1:
+                    countdown = "Due tomorrow"
+
+                elif days_left == 0:
+                    countdown = "Due today"
+
+                else:
+                    countdown = (
+                        f"Overdue by {abs(days_left)} days"
+                    )
+
+                    category_color = {
+            "College": "primary",
+            "Docker": "dark",
+            "Work": "warning",
+            "Personal": "success",
+            "General": "secondary"
+        }.get(task[4], "secondary")
+
+        task.append(countdown)
+        task.append(category_color)
+
+            tasks.append(task)
 
         # ======================
         # Dashboard Analytics
@@ -444,7 +492,53 @@ def edit(id):
         "edit.html",
         task=task
     )
+@app.route("/export")
+def export_csv():
 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            task,
+            priority,
+            category,
+            status,
+            due_date,
+            created_at
+        FROM tasks
+        ORDER BY created_at DESC
+    """)
+
+    rows = cur.fetchall()
+
+    output = StringIO()
+
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Task",
+        "Priority",
+        "Category",
+        "Status",
+        "Due Date",
+        "Created At"
+    ])
+
+    for row in rows:
+        writer.writerow(row)
+
+    cur.close()
+    conn.close()
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition":
+            "attachment; filename=tasks.csv"
+        }
+    )
 
 if __name__ == "__main__":
     app.run(
