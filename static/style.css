@@ -1,0 +1,75 @@
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dark-mode {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .card {
+    background-color: #1e1e1e;
+    color: white;
+    border-color: #333;
+}
+
+.dark-mode .card-header {
+    background-color: #252525;
+    color: white;
+}
+
+.dark-mode .list-group-item {
+    background-color: #1e1e1e;
+    color: white;
+    border-color: #333;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: #2b2b2b;
+    color: white;
+    border-color: #444;
+}
+
+.dark-mode .form-control::placeholder {
+    color: #cccccc;
+}
+
+.dark-mode textarea {
+    background-color: #2b2b2b;
+    color: white;
+}
+
+.dark-mode .text-muted {
+    color: #bbbbbb !important;
+}
+
+.dark-mode .alert-warning {
+    background-color: #4d3a00;
+    color: #fff3cd;
+    border-color: #997404;
+}
+
+.dark-mode .progress {
+    background-color: #333;
+}
+
+.dark-mode .badge.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.dark-mode .badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+.dark-mode .badge.bg-dark {
+    background-color: #000 !important;
+}
+
+.dark-mode .badge.bg-success {
+    background-color: #198754 !important;
+}
+
+.dark-mode .badge.bg-danger {
+    background-color: #dc3545 !important;
+}
