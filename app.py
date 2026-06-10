@@ -213,23 +213,20 @@ def home():
                     countdown = "Due today"
 
                 else:
-                    countdown = (
-                        f"Overdue by {abs(days_left)} days"
-                    )
+                    countdown = f"Overdue by {abs(days_left)} days"
 
-                    category_color = {
-            "College": "primary",
-            "Docker": "dark",
-            "Work": "warning",
-            "Personal": "success",
-            "General": "secondary"
-        }.get(task[4], "secondary")
+            category_color = {
+                "College": "primary",
+                "Docker": "dark",
+                "Work": "warning",
+                "Personal": "success",
+                "General": "secondary"
+            }.get(task[4], "secondary")
 
-        task.append(countdown)
-        task.append(category_color)
+            task.append(countdown)       # index 9
+            task.append(category_color)  # index 10
 
             tasks.append(task)
-
         # ======================
         # Dashboard Analytics
         # ======================
