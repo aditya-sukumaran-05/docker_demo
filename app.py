@@ -55,8 +55,10 @@ def init_db():
                 time.sleep(5)
     except Exception as e:
         print(e)
-
-init_db()
+@app.route("/ping")
+def ping():
+    return "pong"
+#init_db()
 
 @app.route("/health")
 def health():
