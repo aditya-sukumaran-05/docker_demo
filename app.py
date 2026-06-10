@@ -228,7 +228,7 @@ def home():
         task.append(countdown)
         task.append(category_color)
 
-            tasks.append(task)
+        tasks.append(task)
 
         # ======================
         # Dashboard Analytics
