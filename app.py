@@ -12,7 +12,7 @@ import mysql.connector
 import time
 import os
 from datetime import date
-import psycopg2 
+import psycopg2  
 app = Flask(__name__)
 
 host = os.getenv("MYSQL_HOST")
@@ -21,15 +21,18 @@ password = os.getenv("MYSQL_PASSWORD")
 database = os.getenv("MYSQL_DATABASE")
 port = int(os.getenv("MYSQL_PORT", 3306))
 
-def get_connection():
-    return mysql.connector.connect(
-        host=host,
-        user=user,
-        password=password,
-        database=database,
-        port=port
-    )
+# def get_connection():
+#     return mysql.connector.connect(
+#         host=host,
+#         user=user,
+#         password=password,
+#         database=database,
+#         port=port
+#     )
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+def get_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 def init_db():
     try:
@@ -40,7 +43,7 @@ def init_db():
     
                 cur.execute("""
                 CREATE TABLE IF NOT EXISTS tasks(
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     task VARCHAR(255),
                     completed BOOLEAN DEFAULT FALSE,
                     priority VARCHAR(10) DEFAULT 'Medium',
@@ -390,7 +393,7 @@ def update_status(id, new_status):
     WHERE id=%s
     """, (
         new_status,
-        new_status == "Completed",
+        True if new_status == "Completed" else False,
         id
     ))
 
@@ -454,7 +457,7 @@ def edit(id):
             notes,
             due_date,
             status,
-            status == "Completed",
+            True if status == "Completed" else False,
             id
         ))
 
