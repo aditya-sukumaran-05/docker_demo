@@ -31,65 +31,122 @@ port = int(os.getenv("MYSQL_PORT", 3306))
 #     )
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# ==========================
+# PostgreSQL Connection
+# ==========================
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 def get_connection():
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(
+        DATABASE_URL,
+        sslmode="require",
+        connect_timeout=10
+    )
+
+
+# ==========================
+# Database Initialization
+# ==========================
 
 def init_db():
-    try:
-        while True:
-            try:
-                conn = get_connection()
-                cur = conn.cursor()
-    
-                cur.execute("""
-                CREATE TABLE IF NOT EXISTS tasks(
-                    id SERIAL PRIMARY KEY,
-                    task VARCHAR(255),
-                    completed BOOLEAN DEFAULT FALSE,
-                    priority VARCHAR(10) DEFAULT 'Medium',
-                    category VARCHAR(50) DEFAULT 'General',
-                    notes TEXT,
-                    due_date DATE,
-                    status VARCHAR(20) DEFAULT 'To Do',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """)
-    
-                conn.commit()
-    
-                cur.close()
-                conn.close()
-    
-                print("Database ready")
-                break
-    
-            except Exception as e:
-                print("Waiting for MySQL...", e)
-                time.sleep(5)
-    except Exception as e:
-        print(e)
-@app.route("/ping")
-def ping():
-    return "pong"
+
+    while True:
+
+        try:
+
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS tasks(
+                id SERIAL PRIMARY KEY,
+                task VARCHAR(255),
+                completed BOOLEAN DEFAULT FALSE,
+                priority VARCHAR(10) DEFAULT 'Medium',
+                category VARCHAR(50) DEFAULT 'General',
+                notes TEXT,
+                due_date DATE,
+                status VARCHAR(20) DEFAULT 'To Do',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
+            print("✅ Database ready")
+            break
+
+        except Exception as e:
+
+            print("⏳ Waiting for PostgreSQL...")
+            print(e)
+
+            time.sleep(5)
+
+
 init_db()
+
+
+# ==========================
+# Health Check
+# ==========================
 
 @app.route("/health")
 def health():
+
     return {
-        "status": "healthy"
+        "status": "healthy",
+        "database_url_exists": bool(DATABASE_URL)
     }
+
+
+# ==========================
+# Environment Test
+# ==========================
+
+@app.route("/envtest")
+def envtest():
+
+    return {
+        "DATABASE_URL_exists": bool(os.getenv("DATABASE_URL"))
+    }
+
+
+# ==========================
+# Database Test
+# ==========================
+
 @app.route("/dbtest")
 def dbtest():
+
     try:
+
         conn = get_connection()
         cur = conn.cursor()
+
         cur.execute("SELECT 1")
+
         result = cur.fetchone()
+
         cur.close()
         conn.close()
-        return f"Database Connected: {result}"
+
+        return {
+            "status": "success",
+            "result": result[0]
+        }
+
     except Exception as e:
-        return f"Database Error: {str(e)}"
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
 @app.route("/")
 def home():
 
@@ -277,7 +334,7 @@ def home():
         FROM tasks
         WHERE status!='Completed'
         AND due_date IS NOT NULL
-        AND due_date < CURDATE()
+        AND due_date < CURRENT_DATE
         """)
         overdue_tasks = cur.fetchone()[0]
 
