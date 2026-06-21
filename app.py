@@ -8,27 +8,12 @@ from flask import (
 from datetime import date
 import csv
 from io import StringIO
-import mysql.connector
 import time
 import os
 from datetime import date
 import psycopg2  
 app = Flask(__name__)
 
-host = os.getenv("MYSQL_HOST")
-user = os.getenv("MYSQL_USER")
-password = os.getenv("MYSQL_PASSWORD")
-database = os.getenv("MYSQL_DATABASE")
-port = int(os.getenv("MYSQL_PORT", 3306))
-
-# def get_connection():
-#     return mysql.connector.connect(
-#         host=host,
-#         user=user,
-#         password=password,
-#         database=database,
-#         port=port
-#     )
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # ==========================
