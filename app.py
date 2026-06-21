@@ -12,7 +12,7 @@ import mysql.connector
 import time
 import os
 from datetime import date
-
+import psycopg2 
 app = Flask(__name__)
 
 host = os.getenv("MYSQL_HOST")
